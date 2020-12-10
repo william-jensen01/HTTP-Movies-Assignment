@@ -1,60 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
+import axios from 'axios';
+import MovieList from './MovieList';
 
 const initialMovie = {
-    id: '',
     title: '',
     director: '',
-    metascore: '',
-    stars: ''
+    stars: '',
+    metascore: ''
 }
 
-const MovieForm = (props) => {
+const AddMovie = (props) => {
     const { push } = useHistory();
-    const [movie, setMovie] = useState(initialMovie)
     const { id } = useParams();
-
-    useEffect(() => {
-        axios.get(`http://localhost:5000/api/movies/${id}`)
-        .then(res => {
-            setMovie(res.data)
-        })
-        .catch(err => console.log(err));
-    }, [id])
+    const [ movie, setMovie ] = useState(initialMovie);
 
     const changeHandler = (e) => {
         setMovie({
             ...movie,
-            [e.target.name]: e.target.value 
-        });
+            [e.target.name]: e.target.value
+        })
     };
 
     const submitHandler = (e) => {
         e.preventDefault();
-        axios.put(`http://localhost:5000/api/movies/${id}`, movie)
+        axios.post(`http://localhost:5000/api/movies`, movie)
         .then(res => {
-            props.setMovieList(props.movieList.map(movieItem => {
-                if (movieItem.id === res.data.id) {
-                    return res.data
-                } else {
-                    return movieItem
-                }
-            }));
-            // setMovie({
-            //     title: '',
-            //     director: '',
-            //     stars: '',
-            //     metascore: ''
-            // })
-            push(`/movies/${id}`)
+            props.setMovieList([...props.MovieList, res.data]);
+            setMovie(initialMovie);
+            push(`/movies/${res.data.id}`)
         })
         .catch(err => console.log(err))
-    }
-    
+    };
+
     return (
-        <div className="updateForm">
-            <h2>Update Movie</h2>
+        <div className='add-movie'>
+            <h2>Add Movie</h2>
             <form onSubmit={submitHandler}>
                 {/* title */}
                 <input 
@@ -79,16 +60,23 @@ const MovieForm = (props) => {
                 type='text'
                 name='metascore'
                 onChange={changeHandler}
+                placeholder='Metascore'
                 value={movie.metascore}
                 />
 
                 {/* stars */}
-                {/* <input /> */}
+                <input
+                type='text'
+                name='stars'
+                onChange={changeHandler}
+                placeholder='Stars'
+                value={movie.stars}
+                />
 
-                <button>Update</button>
+                <button>Add</button>
             </form>
         </div>
     )
-};
+}
 
-export default MovieForm;
+export default AddMovie;
